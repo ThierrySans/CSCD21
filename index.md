@@ -15,7 +15,7 @@ Upon successful completion of this course, students will be able to:
 
 ## Prerequisite
 
-This course requires a good understanding of web development (CSCC09 recommended).
+Since this course requires a good understanding of web development, CSCC09 is a prerequisite.
 
 ## Course Staff
 
