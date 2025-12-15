@@ -1,3 +1,0 @@
-There might big issues with fixed-point arithmetics in rewards and interest rates. 
-SimpleLending can be implemented as a vault ERC-4626. For that, we ned to add a reward token (similar to DEXwithReward). It might be worth shoring that. 
-

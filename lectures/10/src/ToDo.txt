@@ -1,6 +1,0 @@
-Improvement:
-- Verify ECDSA signature in Circom using: https://github.com/personaelabs/spartan-ecdsa
-
-Potential errors:
-- in all of them: Users might do transactions off-chain and at the same time withdraw from contract.
-- in zk-proof: users might deposits by creating a new tree with two different balances for the same user.

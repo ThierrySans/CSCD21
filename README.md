@@ -1,6 +1,6 @@
-# [CSCD71 Blockchains and Decentralized Applications](https://thierrysans.github.io/CSCD71/)
+# [CSCD21 Blockchains and Decentralized Applications](https://thierrysans.github.io/CSCD21/)
 
-This is the source code for the CSCD71 course website.
+This is the source code for the CSCD21 course website.
 
 Enjoy the course!
 
@@ -50,7 +50,7 @@ A local server will be started on <http://localhost:4000>.
 To pull changes from the original repo, set up a remote to do so:
 
 ```shell
-$ git remote add upstream git@github.com:ThierrySans/CSCD71.git
+$ git remote add upstream git@github.com:ThierrySans/CSCD21.git
 $ git pull upstream master
 $ git push origin master
 ```

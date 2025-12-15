@@ -1,11 +1,11 @@
 # Site settings
-ref: CSCD71
+ref: CSCD21
 title: Blockchains and Decentralized Applications
 edition: Winter 2025
 description: "The course is meant to expose students to Web3 by covering the technical aspects of blockchain technologies and smart contracts. The course will have three learning outcomes. First, the students will learn how to build blockchains based on different consensus. Secondly, they will learn how to develop decentralized applications using smart contracts. Finally, they will learn about the current challenges of blockchain technologies such as scalability, interoperability and privacy. The course will be co-taught with David Liu, UTSC CS alumni and Founder of Uniblock and will feature guest speakers from the industry."
-website: https://thierrysans.me/CSCD71/
-github: https://github.com/ThierrySans/CSCD71
-slack: https://join.slack.com/t/cscd71-w25/shared_invite/zt-2y9cdxgjn-8dq409xP3ZaetRJMxGN_BA
+website: https://thierrysans.me/CSCD21/
+github: https://github.com/ThierrySans/CSCD21
+piazza: https://piazza.com/utoronto.ca/winter2026/cscd21
 
 instructor:
   name: Thierry Sans
@@ -13,7 +13,7 @@ instructor:
   github: ThierrySans
   hours: Mon 1-3 PM
   location: IA 4124
-  contact: Slack only (no email)
+  contact: Piazza only (no email)
   name: Thierry Sans
 
 assistants:
@@ -25,12 +25,12 @@ assistants:
 timings:
     - section: Lecture
       time: Tue 13:00-15:00
-      location: IC 230
+      location: IA 2150A
     - section: TUT01
-      time: Wed 13:00-14:00
-      location: AA 204
-    - section: TUT02
       time: Thu 15:00-16:00
-      location: AA 204
+      location: IA 2010
+    - section: TUT02
+      time: Thu 16:00-17:00
+      location: IC 404
         
-first: 20250106
+first: 20260105

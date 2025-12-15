@@ -11,18 +11,19 @@ permalink: /work/
         <div class="column3">Handout</div>
     </div>
     <div class="row">
-        <div class="column2">February 10</div>
-        <div class="column3"><a href="https://classroom.github.com/a/s0T8kt41">Assignment 1: Blockchain Basics</a></div>
+        <div class="column2">February 1</div>
+        <div class="column3">Assignment 1: Blockchain Basics</div>
     </div>
     <div class="row">
-        <div class="column2">March 10</div>
+        <div class="column2">February 22</div>
          <div class="column3">Assignment 2: Smart Contracts</div>
     </div>
     <div class="row">
-        <div class="column2">March 31</div>
-        <div class="column3">Research and Project</div>
+        <div class="column2">March 15</div>
+         <div class="column3">Assignment 3: Zero-Knowledge Proofs</div>
+    </div>
+    <div class="row">
+        <div class="column2">April 5</div>
+        <div class="column3">Project</div>
     </div>
 </div>
-
-   
-

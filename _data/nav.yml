@@ -6,10 +6,10 @@
   url: /work/
   absolute: False
 
-- title: Slack
-  url:  https://join.slack.com/t/cscd71-w25/shared_invite/zt-2y9cdxgjn-8dq409xP3ZaetRJMxGN_BA
+- title: Piazza
+  url:  https://piazza.com/utoronto.ca/winter2026/cscd21
   absolute: True
 
 - title: Github
-  url: https://github.com/ThierrySans/CSCD71
+  url: https://github.com/ThierrySans/CSCD21
   absolute: True

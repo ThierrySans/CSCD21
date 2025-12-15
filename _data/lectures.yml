@@ -1,21 +1,21 @@
 - week: Introduction
-  notes:
-      Introduction: 01/CSCD71-Introduction.pdf
+  # notes:
+  #     Introduction: 01/CSCD21-Introduction.pdf
 
 - week: Blockchains and Wallets
-  notes:
-      Blockchain : 02/CSCD71-Blockchain.pdf
-      Key Management: 02/CSCD71-KeyManagement.pdf
+  # notes:
+  #     Blockchain : 02/CSCD21-Blockchain.pdf
+  #     Key Management: 02/CSCD21-KeyManagement.pdf
       
 - week: Consensus Algorithms
-  notes:
-      Consensus: 03/CSCD71-Consensus.pdf
+  # notes:
+  #     Consensus: 03/CSCD21-Consensus.pdf
   readings:
       Consensus Mechanisms: https://ethereum.org/en/developers/docs/consensus-mechanisms/#:~:text=Ethereum%20uses%20a%20proof%2Dof,to%20capital%20locked%20by%20stakers.
 
 - week: Bitcoin
-  notes:
-      Bitcoin : 04/CSCD71-Bitcoin.pdf
+  # notes:
+  #     Bitcoin : 04/CSCD21-Bitcoin.pdf
   readings:
       Bitcoin A Peer-to-Peer Electronic Cash System: https://bitcoin.org/bitcoin.pdf
       Bitcoin Developers Guide: https://developer.bitcoin.org/reference/
@@ -23,47 +23,47 @@
 
 # - week: Bitcoin Script
   # notes:
-  #    Bitcoin Script: 05/CSCD71-BitcoinScript.pdf
+  #    Bitcoin Script: 05/CSCD21-BitcoinScript.pdf
   # readings:
   #     "Tutorial: Bitcoin Multisignature": https://docs.google.com/presentation/d/1zJaixbuE-MMi6bZ3qRow1ENvmBJe100ZqXuzCwAO6ZU/edit?usp=sharing
-  #     "Tutorial: Code": https://github.com/lakhwani/cscd71/tree/main/tutorial-2
+  #     "Tutorial: Code": https://github.com/lakhwani/CSCD21/tree/main/tutorial-2
 
 - week: Smart Contract Basics
-  notes:
-      Smart Contracts basics: 05/CSCD71-Ethereum.pdf
+  # notes:
+  #     Smart Contracts basics: 05/CSCD21-Ethereum.pdf
   readings:
       # "Tutorial: Metamask, Faucets, ERC721 & ERC20": https://docs.google.com/presentation/d/1qRjB8CMseIbbsgjkMmQ4cXtpHgV4lxgTSoerK8Tcc94/edit?usp=sharing
-      # "Tutorial: Code": https://github.com/lakhwani/cscd71/tree/main/tutorial-3
+      # "Tutorial: Code": https://github.com/lakhwani/CSCD21/tree/main/tutorial-3
 
 - week: Tokens
-  notes:
-      Smart Contracts Internal: 06/CSCD71-Tokens.pdf
+  # notes:
+  #     Smart Contracts Internal: 06/CSCD21-Tokens.pdf
 
 - break: Reading Week
 
 - week: DeFi (part 1)
-  notes:
-      DeFi: 07/CSCD71-DeFi.pdf
+  # notes:
+  #     DeFi: 07/CSCD21-DeFi.pdf
   readings:
       # "Tutorial: Borrowing, Lending & AMMs": https://docs.google.com/presentation/d/1F93WIY2GRPCyRw6W6fhNtj9nOkYdnqZ48AkBBXfaaP8/edit#slide=id.g13bbb6e15e6_0_0  
 
 - week: DeFi (part 2)
 
 - week: Privacy
-  notes:
-      Privacy: 09/CSCD71-PrivacyAndZKProof.pdf
+  # notes:
+  #     Privacy: 09/CSCD21-PrivacyAndZKProof.pdf
   
 - week: Scalability
-  notes:
-      Scalability: 10/CSCD71-Scaling.pdf
+  # notes:
+  #     Scalability: 10/CSCD21-Scaling.pdf
   
 - week: Security
   readings:
       Known Attacks: https://ethereum-contract-security-techniques-and-tips.readthedocs.io/en/latest/known_attacks/
       Smart Contract Auditing, Assembly, Security, and DeFi: https://github.com/Cyfrin/security-and-auditing-full-course-s23
       The Ethernaut: https://ethernaut.openzeppelin.com/
-  notes:
-      Security: 11/CSCD71-SmartContractSecurity.pdf
+  # notes:
+  #     Security: 11/CSCD21-SmartContractSecurity.pdf
 
 - week: Project Presentations 
 
