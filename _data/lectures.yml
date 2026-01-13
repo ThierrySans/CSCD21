@@ -3,9 +3,9 @@
       Introduction: 01/CSCD21-Introduction.pdf
 
 - week: Blockchains and Wallets
-  # notes:
-  #     Blockchain : 02/CSCD21-Blockchain.pdf
-  #     Key Management: 02/CSCD21-KeyManagement.pdf
+  notes:
+      Blockchain : 02/CSCD21-Blockchain.pdf
+      Key Management: 02/CSCD21-KeyManagement.pdf
       
 - week: Consensus Algorithms
   # notes:
