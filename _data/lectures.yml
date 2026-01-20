@@ -8,8 +8,8 @@
       Key Management: 02/CSCD21-KeyManagement.pdf
       
 - week: Consensus Algorithms
-  # notes:
-  #     Consensus: 03/CSCD21-Consensus.pdf
+  notes:
+      Consensus: 03/CSCD21-Consensus.pdf
   readings:
       Consensus Mechanisms: https://ethereum.org/en/developers/docs/consensus-mechanisms/#:~:text=Ethereum%20uses%20a%20proof%2Dof,to%20capital%20locked%20by%20stakers.
 
