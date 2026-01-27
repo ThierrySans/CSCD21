@@ -14,8 +14,8 @@
       Consensus Mechanisms: https://ethereum.org/en/developers/docs/consensus-mechanisms/#:~:text=Ethereum%20uses%20a%20proof%2Dof,to%20capital%20locked%20by%20stakers.
 
 - week: Bitcoin
-  # notes:
-  #     Bitcoin : 04/CSCD21-Bitcoin.pdf
+  notes:
+      Bitcoin : 04/CSCD21-Bitcoin.pdf
   readings:
       Bitcoin A Peer-to-Peer Electronic Cash System: https://bitcoin.org/bitcoin.pdf
       Bitcoin Developers Guide: https://developer.bitcoin.org/reference/
