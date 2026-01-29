@@ -17,10 +17,10 @@ instructor:
   name: Thierry Sans
 
 assistants:
-    # - name: Nikhil Lakhwani
-    #   contact: "&#110;&#105;&#107;&#104;&#105;&#108;&#46;&#108;&#97;&#107;&#104;&#119;&#97;&#110;&#105;&#64;&#109;&#97;&#105;&#108;&#46;&#117;&#116;&#111;&#114;&#111;&#110;&#116;&#111;&#46;&#99;&#97;"
-    #   hours: Tue 12:00-13:00
-    #   location: IC 404
+    - name: Kaiwei Zhang
+      contact: Piazza only
+      hours: Thu 4:00 - 5:00 PM
+      location: IA 3180 (CS Help Center)
   
 timings:
     - section: Lecture
