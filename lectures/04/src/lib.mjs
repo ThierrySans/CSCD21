@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import * as bitcoin from 'bitcoinjs-lib';
 import * as bip39 from "bip39";
 import { BIP32Factory } from "bip32";
@@ -8,25 +7,22 @@ import { ECPairFactory } from "ecpair";
 const bip32 = BIP32Factory(ecc);
 const ECPair = ECPairFactory(ecc);
 
-// network config
-const network = bitcoin.networks.testnet;
-const MEMPOOL = "https://mempool.space/testnet4/api";
 const DUST = 546;
 
 async function get(path) {
-  const r = await fetch(MEMPOOL + path);
+  const r = await fetch(path);
   if (!r.ok) throw new Error(`${path} -> ${r.status} ${await r.text()}`);
   return r.text();
 }
 
 async function jget(path) {
-  const r = await fetch(MEMPOOL + path);
+  const r = await fetch(path);
   if (!r.ok) throw new Error(`${path} -> ${r.status} ${await r.text()}`);
   return r.json();
 }
 
-async function tpost(path, body) {
-    const r = await fetch(MEMPOOL + path, {
+async function post(path, body) {
+    const r = await fetch(path, {
         method: "POST",
         headers: { "content-type": "text/plain" },
         body,
@@ -35,60 +31,27 @@ async function tpost(path, body) {
     return r.text();
 }
 
-export async function getAccount(mnemonicFile, accountNumber){
-    const mnemonic = JSON.parse(await fs.readFile(mnemonicFile, "utf8"));
-    const seed = await bip39.mnemonicToSeed(mnemonic.join(" "));
-
-    // BIP84 testnet coin_type = 1'
-    // path: m/84'/1'/account'/0/0
-    const root = bip32.fromSeed(seed, network);
-    const node = root.deriveHardened(84).deriveHardened(1).deriveHardened(accountNumber).derive(0).derive(0);
-    const pay = bitcoin.payments.p2wpkh({ pubkey: node.publicKey, network });
-    const address = pay.address;
-    
-    return { address, publicKey: node.publicKey, privateKey: node.privateKey, script: pay.output };
-}
-
-export async function getUtxos(address){
-    const utxos = await jget(`/address/${address}/utxo`);
+async function getUtxos(mempool, address){
+    const utxos = await jget(`${mempool}/address/${address}/utxo`);
     utxos.forEach(function(u){
         u.value = BigInt(u.value);
     });
     return utxos;
 }
 
-export function signTransaction(account, psbtHex){
-    const psbt = bitcoin.Psbt.fromHex(psbtHex, { network });
-    for (let i=0; i<psbt.data.inputs.length; i++) {
-        const keyPair = ECPair.fromPrivateKey(account.privateKey, { network });
-        psbt.signInput(i, keyPair);
-    };
-    return psbt.toHex();
-}
-
-export function sendTransaction(psbtHex){
-    const psbt = bitcoin.Psbt.fromHex(psbtHex, { network });
-    // for (let i=0; i<psbt.data.inputs.length; i++) {
-    //     psbt.validateSignaturesOfInput(i);
-    // }
-    psbt.finalizeAllInputs();
-    const tx = psbt.extractTransaction();
-    return tpost("/tx", tx.toHex());
-}
-
-async function selectUtxo(address, amount, feeSelection){
+async function selectUtxos(mempool, address, amount, feeSelection){
     // get network fees
     // - fastestFee: Urgent (next block)
     // - halfHourFee: default (within ~30min)
     // - hourFee: low (within ~1h)
     // - economyFee: cheapest (no time bounded)
     // - minimumFee: hard floor (tx rejected below that)
-    const fees = await jget("/v1/fees/recommended");
+    const fees = await jget(`${mempool}/v1/fees/recommended`);
 
     // sort utxos - greedy select (largest first)
-    const utxos = await getUtxos(address);
+    const utxos = await getUtxos(mempool, address);
     utxos.sort((a, b) => (a.value < b.value ? 1 : -1));
-    
+
     // select utxos
     let total = 0n;
     let fee = 0n;
@@ -105,77 +68,144 @@ async function selectUtxo(address, amount, feeSelection){
         // calculate fee
         fee = BigInt(fees[feeSelection] * size);
     } while (total < (amount + fee))
-    
+
     return { utxos: utxos.slice(0, index), total, fee }
 }
 
-export async function createW2pkhTransaction(fromAccount, toAddress, amount, feeSelection='halfHourFee'){
-    const { utxos, total, fee } = await selectUtxo(fromAccount.address, amount, feeSelection);
+class AccountWallet{
     
-    // create PSBT (Partially Signed Bitcoin Transaction)
-    const psbt = new bitcoin.Psbt({ network });
+    constructor(network, mempool, mnemonic, accountNumber) {
+        const seed = bip39.mnemonicToSeedSync(mnemonic.join(" "));
+        // BIP84 testnet coin_type = 1'
+        // path: m/84'/1'/account'/0/0
+        const root = bip32.fromSeed(seed, this.network);
+        const node = root.deriveHardened(84).deriveHardened(1).deriveHardened(accountNumber).derive(0).derive(0);
+        const pay = bitcoin.payments.p2wpkh({ pubkey: node.publicKey, network });
+        this.network = network;
+        this.mempool = mempool; 
+        this.address = pay.address;
+        this.publicKey = node.publicKey;
+        this.privateKey = node.privateKey;
+        this.script = pay.output;
+    }
+    
+    signTransaction(psbtHex){
+        const psbt = bitcoin.Psbt.fromHex(psbtHex, { network: this.network });
+        for (let i=0; i<psbt.data.inputs.length; i++) {
+            const keyPair = ECPair.fromPrivateKey(this.privateKey, { network: this.network });
+            psbt.signInput(i, keyPair);
+        };
+        return psbt.toHex();
+    }
+    
+    async createTransaction(toAddress, amount, feeSelection='halfHourFee'){
+        const { utxos, total, fee } = await selectUtxos(this.mempool, this.address, amount, feeSelection);
+    
+        // create PSBT (Partially Signed Bitcoin Transaction)
+        const psbt = new bitcoin.Psbt({ network: this.network });
 
-    // inputs
-    for (const inp of utxos) {
-        psbt.addInput({
-          hash: inp.txid,
-          index: inp.vout,
-          witnessUtxo: {
-            script: fromAccount.script,
-            value: inp.value,
-          },
+        // inputs
+        for (const inp of utxos) {
+            psbt.addInput({
+              hash: inp.txid,
+              index: inp.vout,
+              witnessUtxo: {
+                script: this.script,
+                value: inp.value,
+              },
+            });
+        }
+    
+        // transfer amount
+        psbt.addOutput({
+            address: toAddress,
+            value: amount,
         });
+    
+        // change (if any)
+        let change = total - amount - fee;
+        if (change >= DUST) {
+            psbt.addOutput({ address: this.address, value: change });
+        }
+    
+        return psbt.toHex();
     }
-    
-    // transfer amount
-    psbt.addOutput({
-        address: toAddress,
-        value: amount,
-    });
-    
-    // change (if any)
-    let change = total - amount - fee;
-    if (change >= DUST) {
-        psbt.addOutput({ address: fromAccount.address, value: change });
-    }
-    
-    return psbt.toHex();
 }
 
-export async function createMultiSigWallet(publicKeys, threshold, ){
-    const pubkeys = [...publicKeys].sort(Buffer.compare);
-    const redeem = bitcoin.payments.p2ms({ m: threshold, pubkeys, network });
-    const p2sh = bitcoin.payments.p2sh({ redeem, network });
-        
-    return { address:p2sh.address, script: redeem.output };
+class MultiSigWallet{
+    
+    constructor(network, mempool, publicKeys, threshold) {
+        const pubkeys = [...publicKeys].sort(Buffer.compare);
+        const redeem = bitcoin.payments.p2ms({ m: threshold, pubkeys, network: network });
+        const p2sh = bitcoin.payments.p2sh({ redeem, network });
+        this.network = network;
+        this.mempool = mempool; 
+        this.address = p2sh.address;
+        this.script = redeem.output;
+    }
+    
+    async createTransaction(toAddress, amount, feeSelection='halfHourFee'){
+        const { utxos, total, fee } = await selectUtxos(this.mempool, this.address, amount, feeSelection);
+    
+        // Build spend PSBT
+        const psbt = new bitcoin.Psbt({ network: this.network });
+
+        for (const inp of utxos) {
+            const txHex = await get(`${this.mempool}/tx/${inp.txid}/hex`)
+            psbt.addInput({
+              hash: inp.txid,
+              index: inp.vout,
+              nonWitnessUtxo: Buffer.from(txHex, 'hex'),
+              redeemScript: this.script,
+            });
+        }
+        // transfer amount
+        psbt.addOutput({
+            address: toAddress,
+            value: amount,
+        });
+    
+        // change (if any)
+        let change = total - amount - fee;
+        if (change >= DUST) {
+            psbt.addOutput({ address: this.address, value: change });
+        }
+    
+        return psbt.toHex();
+    }
 }
 
-export async function createW2shTransaction(wallet, toAddress, amount, feeSelection='halfHourFee'){
-    const { utxos, total, fee } = await selectUtxo(wallet.address, amount, feeSelection);
-    
-    // Build spend PSBT
-    const psbt = new bitcoin.Psbt({ network });
+export class BitcoinClient {
+  
+  constructor(network, mempool) {
+      this.network = network;
+      this.mempool = mempool;
+  }
+  
+  getAccountWallet(mnemonic, accountNumber){
+      return new AccountWallet(this.network, this.mempool, mnemonic, accountNumber);
+  }
 
-    for (const inp of utxos) {
-        const txHex = await get(`/tx/${inp.txid}/hex`)
-        psbt.addInput({
-          hash: inp.txid,
-          index: inp.vout,
-          nonWitnessUtxo: Buffer.from(txHex, 'hex'),
-          redeemScript: wallet.script,
-        });
-    }
-    // transfer amount
-    psbt.addOutput({
-        address: toAddress,
-        value: amount,
-    });
-    
-    // change (if any)
-    let change = total - amount - fee;
-    if (change >= DUST) {
-        psbt.addOutput({ address: wallet.address, value: change });
-    }
-    
-    return psbt.toHex();
+  getMultiSigWallet(publicKeys, threshold){
+      return new MultiSigWallet(this.network, this.mempool, publicKeys, threshold);
+  }
+  
+  getUtxos(address){
+      return getUtxos(this.mempool, address);
+  }
+  
+  async getBalance(address){
+      return Number((await this.getUtxos(address)).reduce((acc,u)=>acc+u.value, 0n))/100000000;
+  }
+  
+  sendTransaction(psbtHex){
+      const psbt = bitcoin.Psbt.fromHex(psbtHex, { network: this.network });
+      // for (let i=0; i<psbt.data.inputs.length; i++) {
+      //     psbt.validateSignaturesOfInput(i);
+      // }
+      psbt.finalizeAllInputs();
+      const tx = psbt.extractTransaction();
+      return post(`${this.mempool}/tx`, tx.toHex());
+  }
+ 
 }
