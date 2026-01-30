@@ -1,6 +1,6 @@
 import { keygen, signAsync, verifyAsync } from '@noble/secp256k1';
 
-// Generate a random private key (32 bytes)
+// Generate a randfom key pair
 const { secretKey, publicKey } = keygen();
 console.log(`Secret Key: ${Buffer.from(secretKey).toString('hex')}`);
 console.log(`Public Key: ${Buffer.from(publicKey).toString('hex')}`);
