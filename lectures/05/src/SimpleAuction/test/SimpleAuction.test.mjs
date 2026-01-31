@@ -80,7 +80,7 @@ describe("Simple Auction Tests", function () {
     });
     
     beforeAll(async () => {
-        // create owner's wallet
+        // create wallets
         [owner, bidder1, bidder2, bidder3] = await Promise.all(privateKeys.map(function(pk){
             return createWalletClient({ chain: foundry, transport: rpc , account: privateKeyToAccount(pk) });
         })); 

@@ -80,7 +80,7 @@ describe("Lock Tests", function () {
     });
     
     beforeAll(async () => {
-        // create owner's wallet
+        // create wallets
         [owner, notOwner] = await Promise.all(privateKeys.map(function(pk){
             return createWalletClient({ chain: foundry, transport: rpc , account: privateKeyToAccount(pk) });
         }));
