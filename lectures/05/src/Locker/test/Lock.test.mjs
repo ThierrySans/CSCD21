@@ -66,9 +66,8 @@ function compileContract(contract){
 
 describe("Lock Tests", function () {
 	
-    let wallet,             // owner's wallet
-        abi, address,       // contract
-        unlockTime, value;  // contract parameters
+    let owner, notOwner, // wallets
+        contract;        // contract
     
     const receipts = [];
     
@@ -86,40 +85,42 @@ describe("Lock Tests", function () {
     
     beforeAll(async () => {
         // create owner's wallet
-        wallet = await createWallet(client, privateKeys[0]);
+        [owner, notOwner] = await Promise.all(privateKeys.map(pk => createWallet(client, pk)));
         // compile the contract
-        const compiled = compileContract("Lock");
-        abi = compiled.abi;
-        const bytecode = compiled.bytecode;
+        const { abi, bytecode } = compileContract("Lock");
         // the contract's constructor requires the argument "unlockTime"
         const block = await client.getBlock({ blockTag: "latest" });
         const now = Number(block.timestamp); 
-        unlockTime = BigInt(now + YEAR);
+        const unlockTime = BigInt(now + YEAR);
         // the constructor is payable
-        value = parseGwei('1');
+        const value = parseGwei('1');
         // deploy contract
-        const hash = await wallet.deployContract({ abi, bytecode, args: [unlockTime], value });
+        const hash = await owner.deployContract({ abi, bytecode, args: [unlockTime], value });
         // wait for the transaction to be confirmed
         const receipt = await client.waitForTransactionReceipt({ hash });
-        address = receipt.contractAddress;
         receipts.push({label: "Deployment", receipt});
+        const address = receipt.contractAddress;
+        contract = {address, abi, args: { unlockTime }, value};
     })
     
     describe("Deployment Tests", function (){
     	
         it("Should have the right balance", async function () {
+            const { address, value } = contract;
             const balance = await client.getBalance({address});
             expect(balance).to.equal(value);
     	});
     
     	it("Should have the right unlockTime", async function () {
+            const { address, abi, args } = contract;
             const time = await client.readContract({ address, abi, functionName: "unlockTime" });
-            expect(time).to.equal(unlockTime);
+            expect(time).to.equal(args.unlockTime);
     	});
     
     	it("Should have the right owner", async function () {
-            const owner = await client.readContract({ address, abi, functionName: "owner" });
-            expect(owner).to.equal(wallet.account.address);
+            const { address, abi, args } = contract;
+            const contractOwner = await client.readContract({ address, abi, functionName: "owner" });
+            expect(contractOwner).to.equal(owner.account.address);
     	});
         
     })
@@ -127,7 +128,8 @@ describe("Lock Tests", function () {
     describe("Present Tests", function (){
     	
         it("Should reject if withdrawing too soon", async function () {
-            const request = wallet.writeContract({ address, abi, functionName: "withdraw" });
+            const { address, abi } = contract;
+            const request = owner.writeContract({ address, abi, functionName: "withdraw" });
             await expect(request).rejects.toThrow("You can't withdraw yet");
     	});
     
@@ -143,16 +145,16 @@ describe("Lock Tests", function () {
         })
         
         it("Should reject if withdrawing is not done by the owner", async function () {
-            // create another wallet
-            const anotherWallet = await createWallet(client, privateKeys[1]);
+            const { address, abi } = contract;
             // call the contract from another wallet
-            const request = anotherWallet.writeContract({ address, abi, functionName: "withdraw" });
+            const request = notOwner.writeContract({ address, abi, functionName: "withdraw" });
             await expect(request).rejects.toThrow("You aren't the owner");
         });
         
         it("Should emit an event on withdrawals", async function () {
+            const { address, abi, value } = contract;
             // call the contract (success)
-            const hash = await wallet.writeContract({ address, abi, functionName: "withdraw" });
+            const hash = await owner.writeContract({ address, abi, functionName: "withdraw" });
             const receipt = await client.waitForTransactionReceipt({ hash });
             receipts.push({label: "Withdrawal", receipt});
             // check the logs looking of events
