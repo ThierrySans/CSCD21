@@ -1,10 +1,13 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { expect, describe, it, expect, beforeAll, afterAll } from 'vitest';
 
-import { createPublicClient, createWalletClient, http, parseGwei, decodeEventLog, formatEther } from "viem";
+import { createPublicClient, createWalletClient, http, parseEther, decodeEventLog, formatEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
 
-import { compileContract } from "../lib/index.mjs";
+import solc from "solc";
 
 const rpc = http("http://127.0.0.1:8545");
 const client = await createPublicClient({ chain: foundry, transport: rpc });

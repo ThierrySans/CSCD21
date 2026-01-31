@@ -1,10 +1,13 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { expect, describe, it, expect, beforeAll, afterAll } from 'vitest';
 
-import { createPublicClient, createWalletClient, http, parseGwei, decodeEventLog, formatEther } from "viem";
+import { createPublicClient, createWalletClient, http, parseEther, decodeEventLog, formatEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
 
-import { compileContract } from "../lib/index.mjs";
+import solc from "solc";
 
 const rpc = http("http://127.0.0.1:8545");
 
@@ -22,6 +25,38 @@ const privateKeys = [
     "0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97",
     "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
 ];
+
+function compileContract(contract){
+    // read contract source code
+	const content = readFileSync(join('contracts', `${contract}.sol`), "utf8");
+	const sources = {};
+	sources[`${contract}.sol`] = { content };
+  	const input = {
+    	language: "Solidity",
+    	sources,
+    	settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode"] } } },
+  	};
+    // compile the program
+  	const output = JSON.parse(solc.compile(JSON.stringify(input)));
+    // show warnings and errors 
+    if (output.errors) {
+      for (const e of output.errors) {
+        console.error(
+          `${e.severity.toUpperCase()}: ${e.formattedMessage}`
+        );
+      }
+      // fail hard on errors
+      if (output.errors.some((e) => e.severity === "error")) {
+        process.exit(1);
+      }
+    }
+    // extract bytecode and abi (interface)
+  	const c = output.contracts[`${contract}.sol`][contract];
+	const abi = c.abi;
+	const bytecode = `0x${c.evm.bytecode.object}`;
+    return { abi, bytecode };
+}
+
 
 describe("Lock Tests", function () {
 	
@@ -56,7 +91,7 @@ describe("Lock Tests", function () {
         const now = Number(block.timestamp); 
         const unlockTime = BigInt(now + YEAR);
         // the constructor is payable
-        const value = parseGwei('1');
+        const value = parseEther('1');
         // deploy contract
         const hash = await owner.deployContract({ abi, bytecode, args: [unlockTime], value });
         // wait for the transaction to be confirmed
