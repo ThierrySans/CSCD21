@@ -1,27 +1,40 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect } from 'vitest';
 
 import solc from "solc";
-import { createPublicClient, createWalletClient, http, parseGwei, decodeEventLog } from "viem";
+import { createPublicClient, createWalletClient, http, parseGwei, decodeEventLog, formatEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
 
-function createClient(chain, server){
-    const rpc = http(server);
-    return createPublicClient({ chain, transport: rpc });
-} 
+const rpc = http("http://127.0.0.1:8545");
+
+const client = await createPublicClient({ chain: foundry, transport: rpc });
+
+const privateKeys = [
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+    "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",
+    "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6",
+    "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a",
+    "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba",
+    "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e",
+    "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356",
+    "0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97",
+    "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
+];
+
+const YEAR = 365 * 24 * 60 * 60;
 
 function createWallet(client, pk){
-    const chain = client.chain;
-    const transport = http(client.transport.url);
     const account = privateKeyToAccount(pk);
-    return createWalletClient({ chain, transport, account });
+    return createWalletClient({ chain: foundry, transport: rpc , account });
 }
 
 function compileContract(contract){
+    // read contract source code
 	const content = readFileSync(join('contracts', `${contract}.sol`), "utf8");
 	const sources = {};
 	sources[`${contract}.sol`] = { content };
@@ -30,7 +43,9 @@ function compileContract(contract){
     	sources,
     	settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode"] } } },
   	};
+    // compile the program
   	const output = JSON.parse(solc.compile(JSON.stringify(input)));
+    // show warnings and errors 
     if (output.errors) {
       for (const e of output.errors) {
         console.error(
@@ -42,33 +57,52 @@ function compileContract(contract){
         process.exit(1);
       }
     }
+    // extract bytecode and abi (interface)
   	const c = output.contracts[`${contract}.sol`][contract];
 	const abi = c.abi;
 	const bytecode = `0x${c.evm.bytecode.object}`;
     return { abi, bytecode };
 }
 
-async function deployContract(client, wallet, { abi, bytecode }, args=[], value=0n){
-    const hash = await wallet.deployContract({ abi, bytecode, args, value });
-    const receipt = await client.waitForTransactionReceipt({ hash });
-    return receipt.contractAddress;
-}
-
 describe("Lock Tests", function () {
 	
-    let client, wallet, abi, address, unlockTime, value;
+    let wallet,             // owner's wallet
+        abi, address,       // contract
+        unlockTime, value;  // contract parameters
+    
+    const receipts = [];
+    
+    afterAll(async () =>{
+        if (receipts.length === 0) return;
+
+        console.log("\n=== Gas / ETH cost summary ===");
+        
+        for (const {label, receipt} of receipts){
+            const costWei = receipt.gasUsed * receipt.effectiveGasPrice;
+            console.log(`• ${label}\n  gas: ${receipt.gasUsed} | cost: ${formatEther(costWei)} ETH`);
+        }
+        console.log("================================\n");
+    });
     
     beforeAll(async () => {
-        client = await createClient(foundry, "http://127.0.0.1:8545");
-        wallet = await createWallet(client, "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80");
+        // create owner's wallet
+        wallet = await createWallet(client, privateKeys[0]);
+        // compile the contract
         const compiled = compileContract("Lock");
         abi = compiled.abi;
+        const bytecode = compiled.bytecode;
+        // the contract's constructor requires the argument "unlockTime"
         const block = await client.getBlock({ blockTag: "latest" });
         const now = Number(block.timestamp); 
-        const oneYear = 365 * 24 * 60 * 60;
-        unlockTime = BigInt(now + oneYear);
+        unlockTime = BigInt(now + YEAR);
+        // the constructor is payable
         value = parseGwei('1');
-        address = await deployContract(client, wallet, compiled, [unlockTime], value);
+        // deploy contract
+        const hash = await wallet.deployContract({ abi, bytecode, args: [unlockTime], value });
+        // wait for the transaction to be confirmed
+        const receipt = await client.waitForTransactionReceipt({ hash });
+        address = receipt.contractAddress;
+        receipts.push({label: "Deployment", receipt});
     })
     
     describe("Deployment Tests", function (){
@@ -102,24 +136,31 @@ describe("Lock Tests", function () {
     describe("Future Tests", function (){
     
         beforeAll(async () => {
-            // increase by time by one year
-            await client.request({ method: "anvil_increaseTime", params: [365 * 24 * 60 * 60], });
-            // // mine 1 block
+            // increase blockchain time by one year
+            await client.request({ method: "anvil_increaseTime", params: [YEAR], });
+            // mine 1 block
             await client.request({method: "anvil_mine", params: [1] });
         })
         
         it("Should reject if withdrawing is not done by the owner", async function () {
-            const anotherWallet = await createWallet(client, "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d");
+            // create another wallet
+            const anotherWallet = await createWallet(client, privateKeys[1]);
+            // call the contract from another wallet
             const request = anotherWallet.writeContract({ address, abi, functionName: "withdraw" });
             await expect(request).rejects.toThrow("You aren't the owner");
         });
         
         it("Should emit an event on withdrawals", async function () {
+            // call the contract (success)
             const hash = await wallet.writeContract({ address, abi, functionName: "withdraw" });
             const receipt = await client.waitForTransactionReceipt({ hash });
+            receipts.push({label: "Withdrawal", receipt});
+            // check the logs looking of events
             expect(receipt.logs).toHaveLength(1);
             const log = receipt.logs[0];
-            const { args } = decodeEventLog({abi, data: log.data, topics: log.topics });
+            // parse and check event
+            const { args, eventName } = decodeEventLog({abi, data: log.data, topics: log.topics });
+            expect(eventName).to.equal('Withdrawal');
             expect(args.amount).to.equal(value);
             const block = await client.getBlock({ blockNumber: receipt.blockNumber });
             expect(args.when).to.equal(block.timestamp);
