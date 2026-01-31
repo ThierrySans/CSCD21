@@ -1,13 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { expect, describe, it, expect, beforeAll, afterAll } from 'vitest';
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { expect } from 'vitest';
-
-import solc from "solc";
 import { createPublicClient, createWalletClient, http, parseGwei, decodeEventLog, formatEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
+
+import { compileContract } from "../lib/index.mjs";
 
 const rpc = http("http://127.0.0.1:8545");
 
@@ -26,50 +23,14 @@ const privateKeys = [
     "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
 ];
 
-const YEAR = 365 * 24 * 60 * 60;
-
-function createWallet(client, pk){
-    const account = privateKeyToAccount(pk);
-    return createWalletClient({ chain: foundry, transport: rpc , account });
-}
-
-function compileContract(contract){
-    // read contract source code
-	const content = readFileSync(join('contracts', `${contract}.sol`), "utf8");
-	const sources = {};
-	sources[`${contract}.sol`] = { content };
-  	const input = {
-    	language: "Solidity",
-    	sources,
-    	settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode"] } } },
-  	};
-    // compile the program
-  	const output = JSON.parse(solc.compile(JSON.stringify(input)));
-    // show warnings and errors 
-    if (output.errors) {
-      for (const e of output.errors) {
-        console.error(
-          `${e.severity.toUpperCase()}: ${e.formattedMessage}`
-        );
-      }
-      // fail hard on errors
-      if (output.errors.some((e) => e.severity === "error")) {
-        process.exit(1);
-      }
-    }
-    // extract bytecode and abi (interface)
-  	const c = output.contracts[`${contract}.sol`][contract];
-	const abi = c.abi;
-	const bytecode = `0x${c.evm.bytecode.object}`;
-    return { abi, bytecode };
-}
-
 describe("Lock Tests", function () {
 	
     let owner, notOwner, // wallets
         contract;        // contract
     
     const receipts = [];
+    
+    const YEAR = 365 * 24 * 60 * 60;
     
     afterAll(async () =>{
         if (receipts.length === 0) return;
@@ -85,7 +46,9 @@ describe("Lock Tests", function () {
     
     beforeAll(async () => {
         // create owner's wallet
-        [owner, notOwner] = await Promise.all(privateKeys.map(pk => createWallet(client, pk)));
+        [owner, notOwner] = await Promise.all(privateKeys.map(function(pk){
+            return createWalletClient({ chain: foundry, transport: rpc , account: privateKeyToAccount(pk) });
+        }));
         // compile the contract
         const { abi, bytecode } = compileContract("Lock");
         // the contract's constructor requires the argument "unlockTime"
