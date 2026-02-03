@@ -21,16 +21,9 @@
       Bitcoin Developers Guide: https://developer.bitcoin.org/reference/
       # "Tutorial: Using Bitcoin Wallets": https://docs.google.com/presentation/d/1a3SJrG8C6Wtq6Y_0NEPV3NHQCAk1fH73jv629JPFIDA/edit?usp=sharing
 
-# - week: Bitcoin Script
-  # notes:
-  #    Bitcoin Script: 05/CSCD21-BitcoinScript.pdf
-  # readings:
-  #     "Tutorial: Bitcoin Multisignature": https://docs.google.com/presentation/d/1zJaixbuE-MMi6bZ3qRow1ENvmBJe100ZqXuzCwAO6ZU/edit?usp=sharing
-  #     "Tutorial: Code": https://github.com/lakhwani/CSCD21/tree/main/tutorial-2
-
 - week: Smart Contract Basics
-  # notes:
-  #     Smart Contracts basics: 05/CSCD21-Ethereum.pdf
+  notes:
+      Smart Contracts basics: 05/CSCD21-Ethereum.pdf
   readings:
       # "Tutorial: Metamask, Faucets, ERC721 & ERC20": https://docs.google.com/presentation/d/1qRjB8CMseIbbsgjkMmQ4cXtpHgV4lxgTSoerK8Tcc94/edit?usp=sharing
       # "Tutorial: Code": https://github.com/lakhwani/CSCD21/tree/main/tutorial-3
