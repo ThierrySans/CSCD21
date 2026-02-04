@@ -7,8 +7,6 @@ import { createPublicClient, createWalletClient, http, parseEther, decodeEventLo
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
 
-import solc from "solc";
-
 const rpc = http("http://127.0.0.1:8545");
 
 const client = await createPublicClient({ chain: foundry, transport: rpc });
@@ -26,37 +24,12 @@ const privateKeys = [
     "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
 ];
 
-function compileContract(contract){
-    // read contract source code
-	const content = readFileSync(join('contracts', `${contract}.sol`), "utf8");
-	const sources = {};
-	sources[`${contract}.sol`] = { content };
-  	const input = {
-    	language: "Solidity",
-    	sources,
-    	settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode"] } } },
-  	};
-    // compile the program
-  	const output = JSON.parse(solc.compile(JSON.stringify(input)));
-    // show warnings and errors 
-    if (output.errors) {
-      for (const e of output.errors) {
-        console.error(
-          `${e.severity.toUpperCase()}: ${e.formattedMessage}`
-        );
-      }
-      // fail hard on errors
-      if (output.errors.some((e) => e.severity === "error")) {
-        process.exit(1);
-      }
-    }
-    // extract bytecode and abi (interface)
-  	const c = output.contracts[`${contract}.sol`][contract];
-	const abi = c.abi;
-	const bytecode = `0x${c.evm.bytecode.object}`;
-    return { abi, bytecode };
-}
 
+function loadContract(contract) {
+  const content = readFileSync(join('out', `${contract}.sol`, `${contract}.json`), "utf8");
+  const artifact = JSON.parse(content);
+  return { abi: artifact.abi, bytecode: artifact.bytecode.object };
+}
 
 describe("Lock Tests", function () {
 	
@@ -85,7 +58,7 @@ describe("Lock Tests", function () {
             return createWalletClient({ chain: foundry, transport: rpc , account: privateKeyToAccount(pk) });
         }));
         // compile the contract
-        const { abi, bytecode } = compileContract("Lock");
+        const { abi, bytecode } = loadContract("Lock");
         // the contract's constructor requires the argument "unlockTime"
         const block = await client.getBlock({ blockTag: "latest" });
         const now = Number(block.timestamp); 
