@@ -1,13 +1,11 @@
 import { readFileSync } from "node:fs";
-import { join, resolve, } from "node:path";
+import { join } from "node:path";
 
 import { expect, describe, it, expect, beforeAll, afterAll } from 'vitest';
 
-import { createPublicClient, createWalletClient, http, parseEther, decodeEventLog, formatEther, isAddress } from "viem";
+import { createPublicClient, createWalletClient, http, decodeEventLog, formatEther, isAddress } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
-
-import solc from "solc";
 
 const rpc = http("http://127.0.0.1:8545");
 const client = await createPublicClient({ chain: foundry, transport: rpc });
@@ -25,44 +23,10 @@ const privateKeys = [
     "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
 ];
 
-function findImports(importPath) {
-  try {
-    const fullPath = resolve("contracts", importPath);
-    return { contents: readFileSync(fullPath, "utf8") };
-  } catch (e) {
-    return { error: "File not found" };
-  }
-}
-
-function compileContract(contract){
-    // read contract source code
-	const content = readFileSync(join('contracts', `${contract}.sol`), "utf8");
-	const sources = {};
-	sources[`${contract}.sol`] = { content };
-  	const input = {
-    	language: "Solidity",
-    	sources,
-    	settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode"] } } },
-  	};
-    // compile the program
-  	const output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
-    // show warnings and errors 
-    if (output.errors) {
-      for (const e of output.errors) {
-        console.error(
-          `${e.severity.toUpperCase()}: ${e.formattedMessage}`
-        );
-      }
-      // fail hard on errors
-      if (output.errors.some((e) => e.severity === "error")) {
-        process.exit(1);
-      }
-    }
-    // extract bytecode and abi (interface)
-  	const c = output.contracts[`${contract}.sol`][contract];
-	const abi = c.abi;
-	const bytecode = `0x${c.evm.bytecode.object}`;
-    return { abi, bytecode };
+function loadContract(contract) {
+  const content = readFileSync(join('out', `${contract}.sol`, `${contract}.json`), "utf8");
+  const artifact = JSON.parse(content);
+  return { abi: artifact.abi, bytecode: artifact.bytecode.object };
 }
 
 describe("Auction House", function () {
@@ -90,7 +54,7 @@ describe("Auction House", function () {
             return createWalletClient({ chain: foundry, transport: rpc , account: privateKeyToAccount(pk) });
         })); 
         // compile the contract
-        const { abi, bytecode } = compileContract("AuctionHouse");        
+        const { abi, bytecode } = loadContract("AuctionHouse");        
         // deploy contract
         const hash = await owner.deployContract({ abi, bytecode });
         // wait for the transaction to be confirmed

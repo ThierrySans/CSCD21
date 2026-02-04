@@ -1,6 +1,6 @@
 # The Auction House
 
-## Deploying on a local Ethereum development node
+## Deploying on a Local Development Chain
 
 1. Install dependencies
 
@@ -22,7 +22,7 @@ The written in `tests`
   npm test
   ```
   
-## Deploying on an Ethereum Testnet (e.g *Sepolia*)
+## Deploying on a Testnet Chain (e.g *Sepolia*)
 
 ### Setup
 
@@ -138,16 +138,23 @@ As you develop the frontend, you should use a server that will automatically rel
   
 Your application runs on http://localhost:3000
 
-## Deploying on an Ethereum Mainnet
+## Deploying on a Mainnet Chain (e.g. *Ethereum* Mainnet)
+
+Once everything works on the Testnet chain, you can deploy on a production chain such as 
+
+- *Ethereum* Mainnet (chain id: `1`), 
+- *BNB Smart Chain (BSC)* Mainnet (chain id: `56`)
+- *Polygon* PoS Mainnet (chain id: `137`)
+- *Base* Mainnet (chain id: `8453`)
+- and others
 
 > [!WARNING]
-> Deploying on Ethereum Mainnet costs "real" ETH
+> Deploying on a production Mainnet costs "real" cryptocurrencies
 
-To deploy on the Ethereum Maiinnet (chain id: `1`), ollow the same process as for *Sepolia* but you'll need: 
+Follow the same process as for *Sepolia* but you'll need: 
 
-- a wallet with ETH on the Ethereum Mainnet
-- a new Alchemy API for the Ethereum Mainnet
-
+- a private key account with a positive balance on that chain
+- a new Alchemy API key for that chain
 
 
 
