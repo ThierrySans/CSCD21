@@ -56,7 +56,7 @@ function compileContract(contract){
     return { abi, bytecode };
 }
 
-describe("Simple Auction Tests", function () {
+describe("Simple Auction", function () {
 	
     let owner, bidder1, bidder2, bidder3, // wallet
         contract;                         // contract
@@ -81,7 +81,7 @@ describe("Simple Auction Tests", function () {
     
     beforeAll(async () => {
         // create wallets
-        [owner, bidder1, bidder2, bidder3] = await Promise.all(privateKeys.map(function(pk){
+        [,,owner, bidder1, bidder2, bidder3] = await Promise.all(privateKeys.map(function(pk){
             return createWalletClient({ chain: foundry, transport: rpc , account: privateKeyToAccount(pk) });
         })); 
         // compile the contract
@@ -97,7 +97,7 @@ describe("Simple Auction Tests", function () {
         contract = {address, abi, args:{ auctionEndTime }};
     })
     
-    describe("Deployment Tests", function (){
+    describe("Deployment", function (){
         
     	it("Should have the right unlockTime", async function () {
             const { address, abi, args } = contract;
@@ -130,7 +130,7 @@ describe("Simple Auction Tests", function () {
     	});
     })
     
-    describe("First Bid Tests", function () {
+    describe("First Bid", function () {
       
         let receipt;
       
@@ -173,7 +173,7 @@ describe("Simple Auction Tests", function () {
     });
 
 
-    describe("Higher Bid Tests", function () {
+    describe("Second Bid", function () {
         
       it("Should reject a bid lower than or equal to the current highest bid", async function () {
           const { address, abi } = contract;
@@ -189,7 +189,7 @@ describe("Simple Auction Tests", function () {
       });
     });
     
-    describe("Withdraw Tests", function () {
+    describe("Withdraw", function () {
         
         it("Should allow bidders to withdraw their pending returns", async function () {
             const { address, abi } = contract;
@@ -210,7 +210,7 @@ describe("Simple Auction Tests", function () {
         });
     });
     
-    describe("EndAuction Present Tests", function () {
+    describe("End Auction (present)", function () {
         
         it("Should not allow to call endAuction before the end", async function () {
             const { address, abi } = contract;
@@ -220,7 +220,7 @@ describe("Simple Auction Tests", function () {
         
     });
     
-    describe("EndAuction Future Tests", function () {
+    describe("End Auction (future)", function () {
         
         let before, receipt;
         

@@ -20,15 +20,10 @@ contract SimpleAuction {
         owner = msg.sender;
         auctionEndTime = block.timestamp + _biddingTime;
     }
-
-    // Modifier to restrict functions
-    modifier onlyBeforeEnd() {
-        require(block.timestamp < auctionEndTime, "Auction already ended.");
-        _;
-    }
-	
+    
     // Bid function: allows users to place a bid
-    function bid() public payable onlyBeforeEnd {
+    function bid() public payable {
+        require(block.timestamp < auctionEndTime, "Auction already ended.");
         require(msg.value > highestBid, "There already is a higher bid.");
 
         // If there's a previous bid, add it to the pending returns
