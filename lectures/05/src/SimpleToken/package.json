@@ -11,7 +11,7 @@
       "url": ""
     },
     "scripts": {
-      "test": "vitest --run",
+      "test": "vitest --run tests/**",
       "test:watch": "vitest"
     },
     "dependencies": {
