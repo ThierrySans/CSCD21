@@ -65,12 +65,6 @@ describe("Simple Token Tests", function () {
     })
     
     describe("Deployment Tests", function (){
-    
-    	it("Should have the right owner", async function () {
-            const { address, abi } = contract;
-            const contractOwner = await client.readContract({ address, abi, functionName: "owner" });
-            expect(contractOwner).to.equal(owner.account.address);
-    	});
 
         it("Should assign the total supply of tokens to the owner", async function () {
             const { address, abi } = contract;

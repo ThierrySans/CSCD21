@@ -29,8 +29,8 @@
       # "Tutorial: Code": https://github.com/lakhwani/CSCD21/tree/main/tutorial-3
 
 - week: Tokens
-  # notes:
-  #     Smart Contracts Internal: 06/CSCD21-Tokens.pdf
+  notes:
+      Fungible Tokens and NFTs: 06/CSCD21-Tokens.pdf
 
 - break: Reading Week
 

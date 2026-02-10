@@ -10,9 +10,6 @@ contract SimpleToken {
     // The fixed amount of tokens, stored in an unsigned integer type variable.
     uint256 public totalSupply = 1000000;
 
-    // An address type variable is used to store ethereum accounts.
-    address public owner;
-
     // A mapping is a key/value map. Here we store each account's balance.
     mapping(address => uint256) balances;
 
@@ -27,7 +24,6 @@ contract SimpleToken {
         // The totalSupply is assigned to the transaction sender, which is the
         // account that is deploying the contract.
         balances[msg.sender] = totalSupply;
-        owner = msg.sender;
     }
 
     /**
