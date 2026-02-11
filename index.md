@@ -102,7 +102,7 @@ The numeric marks of the projects and final exam will be used to compute a compo
 
 ## Submission and Grading Policy
 
-For each piece of work done for this class (either an assignment or the project), the student or the team will be required to submit the source code to Gradescope. Only the final submission on Gradescope will be graded.
+For each piece of work done for this class (either an assignment or the project), the student or the team will be required to submit the source code to Github. Only the version at the final commit will be graded.
 
 For group work, the instructor reserves the right to assign different grades to each of the team members based on their individual contributions made to the team repository. 
 
