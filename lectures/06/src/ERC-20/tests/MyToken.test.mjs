@@ -31,7 +31,7 @@ function loadContract(contract) {
 }
 
 
-describe("Order Exchange", function () {
+describe("My Token", function () {
 	
     let owner, spender, receiver1, receiver2; // wallets
     let contract; // contracts

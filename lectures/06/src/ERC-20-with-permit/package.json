@@ -1,0 +1,21 @@
+{
+    "name": "Gaseless Token",
+    "version": "1.0.0",
+    "description": "Gaseless Token",
+    "type": "module",
+    "main": "./index.mjs",
+    "author": "Thierry Sans",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": ""
+    },
+    "scripts": {
+      "test": "vitest --run tests/**",
+      "test:watch": "vitest"
+    },
+    "dependencies": {
+        "viem": "^2.45.1",
+        "vitest": "^4.0.18"
+    }
+}

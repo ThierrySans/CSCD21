@@ -31,7 +31,7 @@ function loadContract(contract) {
 }
 
 
-describe("Order Exchange", function () {
+describe("My NFT", function () {
 	
     let owner, receiver1, receiver2, market; // wallets
     let contract; // contracts

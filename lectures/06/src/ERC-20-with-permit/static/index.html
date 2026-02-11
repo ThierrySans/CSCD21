@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wallet Connector</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <div class="top-row">
+        <p id="erc20Address" class="contract-address">ERC-20 address: loading...</p>
+
+        <div class="right-panel">
+          <div class="top-bar">
+            <label for="chainSelect" class="sr-only">Select Chain</label>
+            <select id="chainSelect" class="chain-select" aria-label="Select chain">
+              <option value="0x7a69">Foundry (Anvil 31337)</option>
+            </select>
+
+            <button id="walletButton" class="wallet-btn" type="button">
+              Connect Wallet
+            </button>
+          </div>
+
+          <p id="walletAddress" class="wallet-address">Wallet not connected.</p>
+          <p id="status" class="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <section class="permit-section">
+        <h1 class="form-title">Permit Signature</h1>
+
+        <form id="permitForm" class="permit-form">
+          <label class="field-label" for="spenderInput">Spender (Ethereum address)</label>
+          <input
+            id="spenderInput"
+            class="field-input"
+            type="text"
+            placeholder="0x..."
+            autocomplete="off"
+            required
+          />
+
+          <label class="field-label" for="amountInput">Amount (uint256)</label>
+          <input
+            id="amountInput"
+            class="field-input"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]+"
+            placeholder="1000000000000000000"
+            required
+          />
+
+          <label class="field-label" for="expiryDaysInput">Expiry (in days)</label>
+          <input
+            id="expiryDaysInput"
+            class="field-input"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="7"
+            required
+          />
+
+          <div class="action-row">
+            <button id="regularSignBtn" class="wallet-btn action-btn" type="button">
+              Regular Signature
+            </button>
+            <button id="eip712SignBtn" class="wallet-btn action-btn" type="button">
+              EIP-712 Signature
+            </button>
+          </div>
+        </form>
+
+        <pre id="signatureOutput" class="signature-output"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
