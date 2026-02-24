@@ -35,8 +35,8 @@
 - break: Reading Week
 
 - week: Privacy
-  # notes:
-  #     Privacy: 09/CSCD21-PrivacyAndZKProof.pdf
+  notes:
+      Privacy: 07/CSCD21-Privacy.pdf
   
 - week: Scalability
   # notes:

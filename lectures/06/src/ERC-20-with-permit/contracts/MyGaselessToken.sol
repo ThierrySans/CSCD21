@@ -6,7 +6,7 @@ import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 // Note, this is a reimplementation of EIP-2612 extending ERC-20 with permits
-// I could have used this directly https://old-docs.openzeppelin.com/contracts-cairo/3.0.0-alpha.2/guides/erc20-permit
+// I could have used this directly https://docs.openzeppelin.com/contracts/5.x/api/token/ERC20#erc20permit
 // However my goal is to illustrate how EIP-712 works at the contract level
 
 contract MyGaselessToken is ERC20, EIP712 {
