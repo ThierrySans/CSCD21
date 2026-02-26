@@ -1,0 +1,25 @@
+{
+    "name": "PasswordWallet",
+    "version": "1.0.0",
+    "description": "Password Wallet",
+    "type": "module",
+    "main": "./index.mjs",
+    "author": "Thierry Sans",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "scripts": {
+        "test": "vitest --run tests/**",
+        "test:watch": "vitest"
+    },
+    "dependencies": {
+        "@noble/ciphers": "^1.3.0",
+        "circomlib": "^2.0.5",
+        "poseidon-lite": "^0.3.0",
+        "snarkjs": "^0.7.6",
+        "viem": "^2.45.1",
+        "vitest": "^4.0.18"
+    }
+}
