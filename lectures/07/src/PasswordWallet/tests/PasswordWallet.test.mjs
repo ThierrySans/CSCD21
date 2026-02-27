@@ -7,14 +7,16 @@ import { createPublicClient, createWalletClient, http, parseEther, decodeEventLo
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
 
+import { proxy, PoseidonT6 } from 'poseidon-solidity';
+
 import { randomBytes } from '@noble/ciphers/webcrypto';
-import { poseidon1, poseidon4 } from 'poseidon-lite';
+import { poseidon1, poseidon2, poseidon5 } from 'poseidon-lite';
 
 import { groth16 } from 'snarkjs';
 
-let wasmFile = join("zk-data", "PasswordWallet_js", "PasswordWallet.wasm");
-let zkeyFile = join("zk-data", "PasswordWallet.zkey");
-const vKey = JSON.parse(readFileSync(join("zk-data", "PasswordWallet.vkey")));
+let wasmFile = join("zk-data", "ProofOfCommitment_js", "ProofOfCommitment.wasm");
+let zkeyFile = join("zk-data", "ProofOfCommitment.zkey");
+const vKey = JSON.parse(readFileSync(join("zk-data", "ProofOfCommitment.vkey")));
 
 const rpc = http("http://127.0.0.1:8545");
 
@@ -52,7 +54,7 @@ function randomBigInt32ModP() {
   return BigInt('0x' + hex) % p;
 }
 
-describe("Lock Tests", function () {
+describe("Password Wallet", function () {
 	
     let deployer, user;  // wallets
     let contract;        // contract
@@ -74,22 +76,35 @@ describe("Lock Tests", function () {
     });
     
     beforeAll(async () => {
-        // create Verifier
+        
+        // Create Accounts
         [deployer, user] = await Promise.all(privateKeys.map(function(pk){
             return createWalletClient({ chain: foundry, transport: rpc , account: privateKeyToAccount(pk) });
         }));
-        // Deploy verifier
-        const hash = await deployer.deployContract(loadContract("PasswordWalletVerifier"));
+        
+        // Deploy Verifier
+        const hash = await deployer.deployContract(loadContract("ProofOfCommitmentVerifier"));
         const receipt = await client.waitForTransactionReceipt({ hash });
-        receipts.push({label: "Deployment", receipt});
+        receipts.push({label: "Verifier Deployment", receipt});
         const verifierAddress = receipt.contractAddress;
         
-        // deploy Password Wallet
+        // Deploy Poseidon T6 contract if needed
+        const hasherCode = await client.getBytecode({ address: PoseidonT6.address })
+        if (!hasherCode) {
+            const hash2 = await deployer.sendTransaction({to: proxy.address, data: PoseidonT6.data})
+            await client.waitForTransactionReceipt({ hash: hash2 });
+        }
+        
+        // Deploy PasswordWallet linked with the PoseidonT5 library
         const { abi, bytecode } = loadContract("PasswordWallet");
-        const hash2 = await deployer.deployContract({ abi, bytecode, args: [verifierAddress] });
-        const receipt2 = await client.waitForTransactionReceipt({ hash:hash2 });
-        receipts.push({label: "Deployment", receipt: receipt2});
-        const address = receipt2.contractAddress;
+        const linkedBytecode = bytecode.replace(
+          /__\$[a-zA-Z0-9]+\$__/g, // Find this in your compiled artifact
+          PoseidonT6.address.slice(2).toLowerCase()
+        );
+        const hash3 = await deployer.deployContract({ abi, bytecode: linkedBytecode, args: [verifierAddress] });
+        const receipt3 = await client.waitForTransactionReceipt({ hash:hash3 });
+        receipts.push({label: "Wallet Deployment", receipt: receipt3});
+        const address = receipt3.contractAddress;
         contract = { address, abi };
     })
     
@@ -111,25 +126,42 @@ describe("Lock Tests", function () {
     })
     
     describe("Transfer", function (){
-
-        it("Should transfer funds", async function () {
-
-            // create the inputs
-            const nonce = randomBigInt32ModP();
-            const amount = parseEther("0.4");
-            const address = BigInt(user.account.address);
-
-            // crate the proof
-            const { proof, publicSignals } = await groth16.fullProve({password, address, amount, nonce}, wasmFile, zkeyFile);
-
-            // verify the proof locally
+        
+        let to, amount, nonce;
+        let pi;
+        
+        beforeAll(async () => {
+            to = user.account.address;
+            amount = parseEther("0.4");
+            nonce = randomBigInt32ModP();
+            
+            // create the proof
+            const zkNonce = poseidon5([BigInt(foundry.id), BigInt(contract.address), BigInt(to), amount, nonce]);
+            const { proof, publicSignals } = await groth16.fullProve({secret: password, nonce: zkNonce}, wasmFile, zkeyFile);
+            pi = { proof, publicSignals };
+        });
+        
+        it("Should verify the public signals", async function () {
+            const { publicSignals } = pi;
+            const zkNonce = await client.readContract({ ...contract, functionName: "getHash", args: [user.account.address, amount, nonce] });
+            
             expect(BigInt(publicSignals[0])).to.equal(passwordHash);
-            const authHash = poseidon4([password, address, amount, nonce]);
+            
+            const authHash = poseidon2([password, zkNonce]);
             expect(BigInt(publicSignals[1])).to.equal(authHash);
+            
+            expect(BigInt(publicSignals[2])).to.equal(zkNonce);
+        });
+        
+        it("Should verify the proof locally", async function () {   
+            const { proof, publicSignals }  = pi;
             const res = await groth16.verify(vKey, publicSignals, proof);
             expect(res).to.be.true;
+        });
 
+        it("Should transfer funds", async function () {
             // pack arguments
+            const { proof, publicSignals }  = pi;
             const proofCalldata = await groth16.exportSolidityCallData( proof, publicSignals);
             const proofCalldataFormatted = JSON.parse("[" + proofCalldata + "]");
             const proofCallDataEncoded = encodeAbiParameters(
@@ -137,12 +169,12 @@ describe("Lock Tests", function () {
                 { type: 'uint256[2]' },
                 { type: 'uint256[2][2]' },
                 { type: 'uint256[2]' },
-                { type: 'uint256[5]' },
+                { type: 'uint256[3]' },
               ],
               proofCalldataFormatted
             );
             // call the contract (success)
-            const hash = await user.writeContract({ ...contract, functionName: "withdraw", args: [proofCallDataEncoded] });
+            const hash = await user.writeContract({ ...contract, functionName: "transfer", args: [proofCallDataEncoded, to, amount, nonce] });
             const receipt = await client.waitForTransactionReceipt({ hash });
             receipts.push({label: "Transfer", receipt});
             const balance = await client.readContract({ ...contract, functionName: "balanceOf", args: [passwordHash]});
