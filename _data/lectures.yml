@@ -39,8 +39,8 @@
       Privacy: 07/CSCD21-Privacy.pdf
   
 - week: Scalability
-  # notes:
-  #     Scalability: 10/CSCD21-Scaling.pdf
+  notes:
+      Scalability: 08/CSCD21-Scaling.pdf
   
 - week: Security
   readings:

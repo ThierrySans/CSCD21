@@ -1,0 +1,22 @@
+{
+    "name": "NaiveRollup",
+    "version": "1.0.0",
+    "description": "Naive Rollup",
+    "type": "module",
+    "main": "./index.mjs",
+    "author": "Thierry Sans",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "scripts": {
+        "test": "vitest --run tests/**",
+        "test:watch": "vitest"
+    },
+    "dependencies": {
+        "@openzeppelin/merkle-tree": "^1.0.8",
+        "viem": "^2.45.1",
+        "vitest": "^4.0.18"
+    }
+}
