@@ -20,7 +20,7 @@ permalink: /work/
     </div>
     <div class="row">
         <div class="column2">March 22</div>
-         <div class="column3">Assignment 3: Zero-Knowledge Proofs</div>
+         <div class="column3"><a href="https://classroom.github.com/a/olRbmSOr">Assignment 3: Zero-Knowledge Proofs</a></div>
     </div>
     <div class="row">
         <div class="column2">April 5</div>
