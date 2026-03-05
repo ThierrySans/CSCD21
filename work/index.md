@@ -16,7 +16,7 @@ permalink: /work/
     </div>
     <div class="row">
         <div class="column2">March 1</div>
-         <div class="column3"><a href="https://classroom.github.com/a/pau2dqk-">, Assignment 2: Smart Contracts</a></div>
+         <div class="column3"><a href="https://classroom.github.com/a/pau2dqk-">Assignment 2: Smart Contracts</a></div>
     </div>
     <div class="row">
         <div class="column2">March 22</div>
