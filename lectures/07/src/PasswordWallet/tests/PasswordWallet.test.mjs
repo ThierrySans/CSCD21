@@ -36,10 +36,25 @@ const privateKeys = [
 ];
 
 
-function loadContract(contract) {
+function loadContract(contract, libraries={}) {
   const content = readFileSync(join('out', `${contract}.sol`, `${contract}.json`), "utf8");
   const artifact = JSON.parse(content);
-  return { abi: artifact.abi, bytecode: artifact.bytecode.object };
+  const abi = artifact.abi;
+  let bytecode = artifact.bytecode.object;
+  const substitutions = {};
+  const references = Object.assign({}, ...Object.values(artifact.bytecode.linkReferences))
+  for (let reference in references){
+      if (!(reference in libraries)) throw new Error(`Undefined address for library ${reference}`);
+      const instance = references[reference][0];
+      const from = instance.start*2 + 2;
+      const to = from + instance.length * 2;
+      const placeholder = bytecode.slice(from, to);
+      substitutions[placeholder] = libraries[reference].slice(2).toLowerCase();
+  }
+  for (let substitution in substitutions){
+      bytecode = bytecode.replaceAll(substitution, substitutions[substitution]);
+  }
+  return { abi, bytecode };
 }
 
 const p = BigInt('21888242871839275222246405745257275088548364400416034343698204186575808495617');
@@ -95,13 +110,9 @@ describe("Password Wallet", function () {
             await client.waitForTransactionReceipt({ hash: hash2 });
         }
         
-        // Deploy PasswordWallet linked with the PoseidonT5 library
-        const { abi, bytecode } = loadContract("PasswordWallet");
-        const linkedBytecode = bytecode.replace(
-          /__\$[a-zA-Z0-9]+\$__/g, // Find this in your compiled artifact
-          PoseidonT6.address.slice(2).toLowerCase()
-        );
-        const hash3 = await deployer.deployContract({ abi, bytecode: linkedBytecode, args: [verifierAddress] });
+        // Deploy PasswordWallet linked with the PoseidonT6 library
+        const { abi, bytecode } = loadContract("PasswordWallet", { PoseidonT6: PoseidonT6.address });
+        const hash3 = await deployer.deployContract({ abi, bytecode, args: [verifierAddress] });
         const receipt3 = await client.waitForTransactionReceipt({ hash:hash3 });
         receipts.push({label: "Wallet Deployment", receipt: receipt3});
         const address = receipt3.contractAddress;
