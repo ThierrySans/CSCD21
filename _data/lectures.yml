@@ -47,12 +47,12 @@
       Known Attacks: https://ethereum-contract-security-techniques-and-tips.readthedocs.io/en/latest/known_attacks/
       Smart Contract Auditing, Assembly, Security, and DeFi: https://github.com/Cyfrin/security-and-auditing-full-course-s23
       The Ethernaut: https://ethernaut.openzeppelin.com/
-  # notes:
-  #     Security: 11/CSCD21-SmartContractSecurity.pdf
+  notes:
+      Security: 09/CSCD21-SmartContractSecurity.pdf
 
 - week: DeFi (part 1)
-  # notes:
-  #     DeFi: 07/CSCD21-DeFi.pdf
+  notes:
+      DeFi: 10/CSCD21-DeFi.pdf
   readings:
       # "Tutorial: Borrowing, Lending & AMMs": https://docs.google.com/presentation/d/1F93WIY2GRPCyRw6W6fhNtj9nOkYdnqZ48AkBBXfaaP8/edit#slide=id.g13bbb6e15e6_0_0  
 

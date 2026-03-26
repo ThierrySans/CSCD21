@@ -1,0 +1,28 @@
+There might big issues with fixed-point arithmetics in rewards and interest rates. 
+SimpleLending can be implemented as a vault ERC-4626. For that, we ned to add a reward token (similar to DEXwithReward). It might be worth shoring that. 
+
+
+In SimpleLending.js you can repeatedly do borrow(1,1) to borrow 1 tokenB for 1 tokenA of collateral with the default parameters in the test cases. so you can just borrow 1 at a time multiple times and they can't liquidate you for any extra collateral
+
+normally in the test case you need 1500 collateral tokenB to borrow 1000 tokenA
+otherwise you can just do this and borrow it all with only 1000 tokenB
+
+it("Should liquidate loan after maturity", async function () {
+        await tokenA.connect(owner).approve(await lending.getAddress(), 1000);
+        await lending.connect(owner).deposit(1000);
+
+        await tokenB.connect(owner).transfer(borrower.address, 1000);
+        await tokenB.connect(borrower).approve(await lending.getAddress(), 1000);
+        for (let i = 0; i < 1000; i++)
+        {
+            await lending.connect(borrower).borrow(1,1);
+        }
+        expect(await tokenA.balanceOf(borrower.address)).to.be.equal(1000);
+    });
+    
+maybe you could make the check collateralAmount > requireCollateral in the borrow function instead of >= so the rate is always in favour of the lender to dissuade this kind of thing.
+
+
+In SimpleStablecoin, there is big issue:
+
+Liquidators can claim collateralToken for free when position is undercollateralized. Although the state of the contract would be as if the deposit never happened, the user would lose money, and the liquidator would gain collateral for free. However I am not sure what the exact correct behavior is in this scenario but it should involve somekind of transfer from liquidator to contract and user should also get some money like in SimpleLending
